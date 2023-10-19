@@ -185,7 +185,7 @@ const normalizeTitle = (excerpt: String) =>
 
 // Pocket API returns time in seconds rather than milliseconds.
 // To transform the number to date, it should be transformed first to millisecond
-// by timing 1000 and format to specific form later. 
+// by timing 1000 and format to specific form later.
 const normalizeDate = (dateinput:number) =>{
   const date = new Date(dateinput*1000)
   return date.toISOString().split("T")[0]
@@ -230,7 +230,7 @@ const generateInitialItemNoteContents = (
     ["date-added", (item) => normalizeDate(item.time_added) ?? "0"],
     ["date-updated", (item) => normalizeDate(item.time_updated) ?? "0"],
     ["favorite",(item) => item.favorite],
-    
+    ["pocket-id", (item) => item.item_id.toString()],
     [
       "image",
       (item) => {

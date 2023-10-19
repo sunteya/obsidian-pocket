@@ -148,6 +148,7 @@ following variables are supported:
 | `{{title}}`        | The title of the Pocket item                            |
 | `{{url}}`          | The URL of the Pocket item                              |
 | `{{pocket-url}}`   | The URL to open the Pocket item in Pocket               |
+| `{{pocket-id}}`    | The ID for Pocket item in Pocket                        |
 | `{{excerpt}}`      | The excerpt extracted by Pocket for the Pocket item     |
 | `{{tags-no-hash}}` | The Pocket tags for the Pocket item                     |
 | `{{tags}}`         | The Pocket tags for the Pocket item, with "#" prepended |
