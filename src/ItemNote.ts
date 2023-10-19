@@ -52,8 +52,10 @@ export const displayTextForSavedPocketItem = (item: SavedPocketItem) => {
 const sanitizeTitle = (title: String) =>
   title.replace(/[\\/:"*?<>|]+/g, " ").substring(0, MAXIMUM_TITLE_LENGTH);
 
-export const linkpathForSavedPocketItem = (item: SavedPocketItem) =>
-  sanitizeTitle(displayTextForSavedPocketItem(item));
+export const linkpathForSavedPocketItem = (item: SavedPocketItem) => {
+  const title = sanitizeTitle(displayTextForSavedPocketItem(item));
+  return `pk${item.item_id} - ${title}`;
+}
 
 export const getAllItemNotes =
   (
