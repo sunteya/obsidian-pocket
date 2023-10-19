@@ -212,6 +212,7 @@ const generateInitialItemNoteContents = (
     ["tags", (item) => hashtagSubstitutor(true)(item.tags)],
     ["tags-no-hash", (item) => hashtagSubstitutor(false)(item.tags)],
     ["pocket-url", (item) => getPocketItemPocketURL(item)],
+    ["pocket-id", (item) => item.item_id.toString()],
     [
       "image",
       (item) => {
