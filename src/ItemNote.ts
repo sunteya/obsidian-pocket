@@ -1,5 +1,6 @@
 import log from "loglevel";
 import {
+  App,
   MetadataCache,
   normalizePath,
   Notice,
@@ -23,7 +24,7 @@ import {
   MultiWordTagConversion,
   TagNormalizationFn,
 } from "./Tags";
-import { ensureFolderExists, getPocketItemPocketURL } from "./Utils";
+import { ensureFolderExists, getPocketItemPocketURL, lookupFortemplater } from "./Utils";
 
 const DEFAULT_ITEM_NOTES_FOLDER = "/";
 
@@ -240,6 +241,15 @@ const generateInitialItemNoteContents = (
     ],
   ]);
 
+  const keys = Array.from(substitutions.keys())
+  substitutions.set("all-as-json", (item) => {
+    const all = {} as Record<string, any>
+    for (const key of keys) {
+      all[key] = substitutions.get(key)(item)
+    }
+    return JSON.stringify(all)
+  })
+
   return Array.from(substitutions.entries()).reduce((acc, currentValue) => {
     const [variableName, substitutionFn] = currentValue;
     const regex = new RegExp(`{{${variableName}}}`, "gi");
@@ -309,6 +319,7 @@ const loadTemplateContents = async (
 
 export const createOrOpenItemNote =
   (
+    app: App,
     settingsManager: SettingsManager,
     workspace: Workspace,
     vault: Vault,
@@ -349,6 +360,15 @@ export const createOrOpenItemNote =
           )
         );
 
+        if (settingsManager.getSetting('item-note-template-with-templater')) {
+          const templater = lookupFortemplater(app);
+          if (templater == null) {
+            throw "Templater plugin not found"
+          }
+
+          await templater.overwrite_file_commands(newItemNote)
+        }
+
         log.debug("Opening item note now");
         await openItemNote(workspace, newItemNote);
       } catch (err) {
@@ -363,6 +383,7 @@ export const createOrOpenItemNote =
   };
 
 export const bulkCreateItemNotes = async (
+  app: App,
   settingsManager: SettingsManager,
   vault: Vault,
   metadataCache: MetadataCache,
@@ -395,6 +416,16 @@ export const bulkCreateItemNotes = async (
           settingsManager
         )
       );
+
+      if (settingsManager.getSetting('item-note-template-with-templater')) {
+        const templater = lookupFortemplater(app);
+        if (templater == null) {
+          throw "Templater plugin not found"
+        }
+
+        await templater.overwrite_file_commands(result)
+      }
+
       newPocketItemNotes.push(result);
 
       if (

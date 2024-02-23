@@ -5,6 +5,7 @@ import { getUniqueId } from "./Utils";
 
 export interface PocketSettings {
   "item-note-template"?: string;
+  "item-note-template-with-templater"?: boolean;
   "item-notes-folder"?: string;
   "multi-word-tag-converter"?: MultiWordTagConversion;
   "pocket-sync-tag"?: string;
@@ -18,6 +19,7 @@ export const DEFAULT_POCKET_SETTINGS: PocketSettings = {
   "frontmatter-url-key": "URL",
   "create-item-notes-on-sync": true,
   "custom-pocket-api-url": "https://getpocket.com",
+  "item-note-template-with-templater": false,
 };
 
 export type OnSettingsChangeCallback = () => Promise<void>;

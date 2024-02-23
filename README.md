@@ -157,6 +157,7 @@ following variables are supported:
 | `{{date-added}}`   | The date that item added to pocket, in YYYY-MM-DD       |
 | `{{date-updated}}` | The date that item last updated, in YYYY-MM-DD          |
 | `{{favorite}}`     | The bool value whether the item is favorite             |
+| `{{all-as-json}}`  | All data as JSON, help for integrate Templater plugin   |
 
 This is the default template in obsidian-pocket. It will populate the [YAML
 frontmatter](https://help.obsidian.md/Advanced+topics/YAML+front+matter) of the
@@ -200,6 +201,26 @@ Excerpt: >
 
 Note that in the example template, the title is quoted so that the YAML
 frontmatter is valid, even if the Pocket item has a title with colons in it.
+
+### Integrate Templater plugin
+
+If "Integrated templater plugin for item note template" is enabled in the settings,
+you can use the following syntax.
+
+```
+---
+<%* const data = {{all-as-json}} -%>
+title: <% data.title %>
+---
+```
+
+This will generate the following content.
+
+```
+---
+title: Carbon removal hype is becoming a dangerous distraction
+---
+```
 
 ## Feature requests, bug reports and PRs
 

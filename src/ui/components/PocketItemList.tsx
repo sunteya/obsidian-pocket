@@ -41,6 +41,7 @@ export const PocketItemList = ({
   resolveItemNote,
   plugin,
 }: PocketItemListProps) => {
+  const app = plugin.app;
   const settingsManager = plugin.settingsManager;
 
   const [items, setItems] = useState<SavedPocketItem[]>([]);
@@ -105,6 +106,7 @@ export const PocketItemList = ({
     return <>No items synced!</>;
   } else {
     const createOrOpen = createOrOpenItemNote(
+      app,
       settingsManager,
       plugin.app.workspace,
       plugin.app.vault,

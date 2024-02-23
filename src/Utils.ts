@@ -1,6 +1,6 @@
-import { Platform, Vault } from "obsidian";
+import { App, Platform, Vault } from "obsidian";
 import { PocketItem } from "./pocket_api/PocketAPITypes";
-import { SupportedDesktopPlatform, SupportedPlatform } from "./Types";
+import { SupportedDesktopPlatform, SupportedPlatform, TemplaterAPI } from "./Types";
 
 export const openBrowserWindow = (url: string) => window.location.assign(url);
 
@@ -46,3 +46,12 @@ export const getPlatform = (): SupportedPlatform =>
 export const getPocketItemPocketURL = (item: PocketItem): string => {
   return `https://getpocket.com/read/${item.item_id}`;
 };
+
+export const lookupFortemplater = (app: App) => {
+  const plugin = (app as any).plugins.getPlugin('templater-obsidian')
+  if (plugin.templater) {
+    return plugin.templater as TemplaterAPI
+  }
+
+  return null
+}

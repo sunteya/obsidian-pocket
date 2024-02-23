@@ -121,6 +121,7 @@ export default class PocketSync extends Plugin {
 
     try {
       await bulkCreateItemNotes(
+        this.app,
         this.settingsManager,
         this.app.vault,
         this.app.metadataCache,

@@ -124,6 +124,30 @@ const addItemNoteTemplateSetting = (
       });
     });
 
+const SET_ITEM_NOTE_TEMPLATE_WITH_TEMPLATER_CTA = "Integrated templater plugin for item note template";
+
+const addItemNoteTemplateWithTemplaterSetting = (
+  settingsManager: SettingsManager,
+  containerEl: HTMLElement
+) =>
+  new Setting(containerEl)
+    .setName(SET_ITEM_NOTE_TEMPLATE_WITH_TEMPLATER_CTA)
+    .setDesc(
+      `Use the templater plugin to process the Pocket item note template. This
+      will allow you to use templater 'replace-in-file-templater' command in your Pocket item note template
+      file, you must have the templater plugin installed and enabled for this`
+    )
+    .addToggle((toggle) => {
+      toggle.setValue(
+        settingsManager.getSetting(
+          "item-note-template-with-templater"
+        ) as boolean
+      );
+      toggle.onChange((value) =>
+        settingsManager.updateSetting("item-note-template-with-templater", value)
+      );
+    });
+
 const SET_ITEM_NOTES_LOCATION_CTA = "Pocket item notes folder location";
 
 const addItemNotesLocationSetting = (
@@ -283,6 +307,7 @@ export class PocketSettingTab extends PluginSettingTab {
     addPocketSyncTagSetting(this.settingsManager, containerEl);
     addItemNotesLocationSetting(this.settingsManager, containerEl);
     addItemNoteTemplateSetting(this.settingsManager, containerEl);
+    addItemNoteTemplateWithTemplaterSetting(this.settingsManager, containerEl);
     addFrontMatterURLKeySetting(this.settingsManager, containerEl);
     addCustomPocketAPIURLSetting(this.settingsManager, containerEl);
   }
