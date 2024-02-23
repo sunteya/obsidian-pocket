@@ -10,12 +10,14 @@ export interface PocketSettings {
   "pocket-sync-tag"?: string;
   "frontmatter-url-key"?: string;
   "create-item-notes-on-sync"?: boolean;
+  "custom-pocket-api-url"?: string;
 }
 
 export const DEFAULT_POCKET_SETTINGS: PocketSettings = {
   "multi-word-tag-converter": "snake-case",
   "frontmatter-url-key": "URL",
   "create-item-notes-on-sync": true,
+  "custom-pocket-api-url": "https://getpocket.com",
 };
 
 export type OnSettingsChangeCallback = () => Promise<void>;

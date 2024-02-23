@@ -238,6 +238,29 @@ const addFrontMatterURLKeySetting = (
     });
 };
 
+const CUSTOM_POCKET_API_URL_CTA = "Custom Pocket API URL";
+const CUSTOM_POCKET_API_URL_DESC = `Use a custom Pocket API URL. This is an advanced setting and should only be used if
+you know what you are doing.`;
+
+const addCustomPocketAPIURLSetting = (
+  settingsManager: SettingsManager,
+  containerEl: HTMLElement
+) => {
+  new Setting(containerEl)
+    .setName(CUSTOM_POCKET_API_URL_CTA)
+    .setDesc(CUSTOM_POCKET_API_URL_DESC)
+    .addText((text) => {
+      text.setPlaceholder(DEFAULT_POCKET_SETTINGS["custom-pocket-api-url"]);
+      text.setValue(settingsManager.getSetting("custom-pocket-api-url"));
+      text.onChange(async (newValue) => {
+        if (newValue.length == 0) {
+          newValue = null;
+        }
+        await settingsManager.updateSetting("custom-pocket-api-url", newValue);
+      });
+    });
+}
+
 export class PocketSettingTab extends PluginSettingTab {
   plugin: PocketSync;
   settingsManager: SettingsManager;
@@ -261,5 +284,6 @@ export class PocketSettingTab extends PluginSettingTab {
     addItemNotesLocationSetting(this.settingsManager, containerEl);
     addItemNoteTemplateSetting(this.settingsManager, containerEl);
     addFrontMatterURLKeySetting(this.settingsManager, containerEl);
+    addCustomPocketAPIURLSetting(this.settingsManager, containerEl);
   }
 }

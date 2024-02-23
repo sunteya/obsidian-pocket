@@ -52,10 +52,10 @@ export const pocketAccessInfoExists = async (
   return accessInfoExists;
 };
 
-const redirectUserToPocketAuth = async (requestToken: RequestToken) =>
-  openBrowserWindow(buildAuthorizationURL(requestToken, AUTH_REDIRECT_URI));
+const redirectUserToPocketAuth = async (pocketAPI: PocketAPI, requestToken: RequestToken) =>
+  openBrowserWindow(buildAuthorizationURL(pocketAPI, requestToken, AUTH_REDIRECT_URI));
 
 export const setupAuth = (pocketAPI: PocketAPI) => async () => {
   const requestToken = await pocketAPI.getRequestToken(AUTH_REDIRECT_URI);
-  redirectUserToPocketAuth(requestToken);
+  redirectUserToPocketAuth(pocketAPI, requestToken);
 };

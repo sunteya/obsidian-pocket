@@ -157,7 +157,7 @@ export default class PocketSync extends Plugin {
     this.pendingSync = null;
     this.pendingBulkCreate = false;
 
-    this.pocketAPI = buildPocketAPI();
+    this.pocketAPI = buildPocketAPI(this.settingsManager);
 
     // Set up Pocket IDB and dependent stores
     log.debug("Opening Pocket IDB");

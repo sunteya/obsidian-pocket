@@ -4,6 +4,7 @@ import * as qs from "query-string";
 import { PocketGetItemsResponse } from "./PocketAPITypes";
 import { SupportedPlatform } from "../Types";
 import { getPlatform } from "../Utils";
+import { SettingsManager } from "src/SettingsManager"
 
 export type ResponseBody = string;
 
@@ -61,21 +62,23 @@ export interface PocketAPI {
   getRequestToken: GetRequestToken;
   getAccessToken: GetAccessToken;
   getPocketItems: GetPocketItems;
+  getBaseUrl: () => string;
 }
 
 export const buildAuthorizationURL = (
+  pocketAPI: PocketAPI,
   requestToken: RequestToken,
   authRedirectURI: string
 ) =>
-  `https://getpocket.com/auth/authorize?request_token=${requestToken}&redirect_uri=${authRedirectURI}`;
+  `${pocketAPI.getBaseUrl()}/auth/authorize?request_token=${requestToken}&redirect_uri=${authRedirectURI}`;
 
 // TODO: Handle unsuccessful requests
-export const getRequestToken: GetRequestToken = async (authRedirectURI) => {
+export const getRequestToken = async (pocketAPI: PocketAPI, authRedirectURI: string) => {
   if (storedRequestToken) {
     log.warn("Found unexpected stored request token");
   }
 
-  const REQUEST_TOKEN_URL = "https://getpocket.com/v3/oauth/request";
+  const REQUEST_TOKEN_URL = `${pocketAPI.getBaseUrl()}/v3/oauth/request`;
 
   const responseBody = await doRequest(REQUEST_TOKEN_URL, {
     consumer_key: CONSUMER_KEY,
@@ -91,12 +94,12 @@ export const getRequestToken: GetRequestToken = async (authRedirectURI) => {
 };
 
 // TODO: Handle unsuccessful requests
-export const getAccessToken: GetAccessToken = async () => {
+export const getAccessToken = async (pocketAPI: PocketAPI) => {
   if (!storedRequestToken) {
     throw new Error("could not find stored request token");
   }
 
-  const ACCESS_TOKEN_URL = "https://getpocket.com/v3/oauth/authorize";
+  const ACCESS_TOKEN_URL = `${pocketAPI.getBaseUrl()}/v3/oauth/authorize`;
 
   const responseBody = await doRequest(ACCESS_TOKEN_URL, {
     consumer_key: CONSUMER_KEY,
@@ -119,12 +122,13 @@ export type TimestampedPocketGetItemsResponse = {
   response: PocketGetItemsResponse;
 };
 
-export const getPocketItems: GetPocketItems = async (
-  accessToken,
-  lastUpdateTimestamp?,
-  pocketSyncTag?
+export const getPocketItems = async (
+  pocketApi: PocketAPI,
+  accessToken: AccessToken,
+  lastUpdateTimestamp?: UpdateTimestamp,
+  pocketSyncTag?: string
 ) => {
-  const GET_ITEMS_URL = "https://getpocket.com/v3/get";
+  const GET_ITEMS_URL = `${pocketApi.getBaseUrl()}/v3/get`;
   const nextTimestamp = Math.floor(Date.now() / 1000);
 
   const requestOptions = {
@@ -163,10 +167,11 @@ export const getPocketItems: GetPocketItems = async (
   }
 };
 
-export const buildPocketAPI = (): PocketAPI => {
-  return {
-    getRequestToken: getRequestToken,
-    getAccessToken: getAccessToken,
-    getPocketItems: getPocketItems,
-  };
+export const buildPocketAPI = (settingsManager: SettingsManager): PocketAPI => {
+  const result = <PocketAPI>{}
+  result.getBaseUrl = () => settingsManager.getSetting('custom-pocket-api-url')
+  result.getRequestToken = (...args) => getRequestToken(result, ...args)
+  result.getAccessToken = (...args) => getAccessToken(result, ...args)
+  result.getPocketItems = (...args) => getPocketItems(result, ...args)
+  return result;
 };
