@@ -111,7 +111,7 @@ export class URLToPocketItemNoteIndex {
       "frontmatter-url-key"
     );
     const fileURL =
-      this.metadataCache.getCache(filePath).frontmatter?.[frontMatterURLKey];
+      this.metadataCache.getCache(filePath)?.frontmatter?.[frontMatterURLKey];
     if (!fileURL || typeof fileURL != "string") {
       log.debug(`No URL found for ${filePath}, skipping indexing`);
       return;
@@ -129,7 +129,7 @@ export class URLToPocketItemNoteIndex {
       .getMarkdownFiles()
       .map((file) => [
         file,
-        this.metadataCache.getFileCache(file).frontmatter?.[frontMatterURLKey],
+        this.metadataCache.getFileCache(file)?.frontmatter?.[frontMatterURLKey],
       ])
       .filter(([file, url]) => !!url && typeof url == "string");
 
