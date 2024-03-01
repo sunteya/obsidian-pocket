@@ -285,6 +285,36 @@ const addCustomPocketAPIURLSetting = (
     });
 }
 
+
+const HEADING_UPLOAD_DATA = "Upload data to pocket";
+
+const UPLOAD_ALLOW_TAGS_CTA = "Upload allow tags";
+const UPLOAD_ALLOW_TAGS_DESC = `Specify the allowed list of tags, multiple tags separated by commas.
+If this setting is left blank, data will not be uploaded.`;
+
+const addUploadAllowTagsSetting = (
+  settingsManager: SettingsManager,
+  containerEl: HTMLElement
+) => {
+  new Setting(containerEl)
+    .setName(UPLOAD_ALLOW_TAGS_CTA)
+    .setDesc(UPLOAD_ALLOW_TAGS_DESC)
+    .addTextArea((text) => {
+      text.setPlaceholder("Specify a list of tags to allow");
+
+      const tags = settingsManager.getSetting("upload-allow-tags") as string[];
+      text.setValue(tags.join(", "));
+      text.onChange(async (newValue) => {
+        if (newValue.length == 0) {
+          newValue = null;
+        }
+
+        const newTags = newValue.split(",").map(it => it.trim()).filter(it => it.length > 0)
+        await settingsManager.updateSetting("upload-allow-tags", newTags);
+      });
+    });
+}
+
 export class PocketSettingTab extends PluginSettingTab {
   plugin: PocketSync;
   settingsManager: SettingsManager;
@@ -310,5 +340,8 @@ export class PocketSettingTab extends PluginSettingTab {
     addItemNoteTemplateWithTemplaterSetting(this.settingsManager, containerEl);
     addFrontMatterURLKeySetting(this.settingsManager, containerEl);
     addCustomPocketAPIURLSetting(this.settingsManager, containerEl);
+
+    containerEl.createEl('h2', { text: HEADING_UPLOAD_DATA });
+    addUploadAllowTagsSetting(this.settingsManager, containerEl);
   }
 }

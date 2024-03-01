@@ -12,6 +12,7 @@ export interface PocketSettings {
   "frontmatter-url-key"?: string;
   "create-item-notes-on-sync"?: boolean;
   "custom-pocket-api-url"?: string;
+  "upload-allow-tags"?: string[];
 }
 
 export const DEFAULT_POCKET_SETTINGS: PocketSettings = {
@@ -20,6 +21,7 @@ export const DEFAULT_POCKET_SETTINGS: PocketSettings = {
   "create-item-notes-on-sync": true,
   "custom-pocket-api-url": "https://getpocket.com",
   "item-note-template-with-templater": false,
+  "upload-allow-tags": [],
 };
 
 export type OnSettingsChangeCallback = () => Promise<void>;
