@@ -209,7 +209,7 @@ const generateInitialItemNoteContents = (
 
   const multiWordTagConversion = settingsManager.getSetting(
     "multi-word-tag-converter"
-  ) as MultiWordTagConversion;
+  )
 
   const hashtagSubstitutor = (addHashtag: boolean) => (tags: PocketTags) =>
     tagsToNoteContent(

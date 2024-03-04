@@ -49,9 +49,7 @@ export const PocketItemList = ({
 
   const [multiWordTagConversion, setMultiWordTagConversion] =
     useState<MultiWordTagConversion>(
-      settingsManager.getSetting(
-        "multi-word-tag-converter"
-      ) as MultiWordTagConversion
+      settingsManager.getSetting("multi-word-tag-converter")
     );
 
   // Load all items and check item notes' existence on initial render
@@ -95,9 +93,7 @@ export const PocketItemList = ({
   useEffect(() => {
     const setting: keyof PocketSettings = "multi-word-tag-converter";
     const cbId = settingsManager.subscribeOnSettingsChange(setting, async () =>
-      setMultiWordTagConversion(
-        settingsManager.getSetting(setting) as MultiWordTagConversion
-      )
+      setMultiWordTagConversion(settingsManager.getSetting(setting))
     );
     return () => settingsManager.unsubscribeOnSettingsChange(setting, cbId);
   }, [settingsManager]);

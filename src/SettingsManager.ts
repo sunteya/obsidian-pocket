@@ -68,7 +68,7 @@ export class SettingsManager {
     await this.saveSettings(this.settings);
   }
 
-  getSetting(key: keyof PocketSettings): any {
+  getSetting<K extends keyof PocketSettings>(key: K) {
     return this.settings[key] ?? DEFAULT_POCKET_SETTINGS[key];
   }
 

@@ -52,7 +52,7 @@ const addCreateItemNotesOnSyncOption = (
     )
     .addToggle((toggle) => {
       toggle.setValue(
-        settingsManager.getSetting("create-item-notes-on-sync") as boolean
+        settingsManager.getSetting("create-item-notes-on-sync")
       );
       toggle.onChange((value) =>
         settingsManager.updateSetting("create-item-notes-on-sync", value)
@@ -142,7 +142,7 @@ const addItemNoteTemplateWithTemplaterSetting = (
       toggle.setValue(
         settingsManager.getSetting(
           "item-note-template-with-templater"
-        ) as boolean
+        )
       );
       toggle.onChange((value) =>
         settingsManager.updateSetting("item-note-template-with-templater", value)
@@ -303,7 +303,7 @@ const addUploadAllowTagsSetting = (
     .addText((text) => {
       text.setPlaceholder("Specify a list of tags to allow");
 
-      const tags = settingsManager.getSetting("upload-allow-tags") as string[];
+      const tags = settingsManager.getSetting("upload-allow-tags");
       text.setValue(tags.join(", "));
       text.onChange(async (newValue) => {
         if (newValue.length == 0) {
@@ -321,7 +321,7 @@ const addUploadFolderTagMappingsSetting = (
   containerEl: HTMLElement,
   settingTab: PluginSettingTab,
 ) => {
-  const mappings = ((settingsManager.getSetting('upload-folder-tag-mappings') ?? []) as FolderTagMapping[]).filter(it => it)
+  const mappings = (settingsManager.getSetting('upload-folder-tag-mappings') ?? []).filter(it => it)
 
   new Setting(containerEl)
       .setName("Folder tags mappings")

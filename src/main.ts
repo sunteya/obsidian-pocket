@@ -78,9 +78,7 @@ export default class PocketSync extends Plugin {
       this.pendingSync = null;
     }
 
-    const shouldCreateAllItemNotes = this.settingsManager.getSetting(
-      "create-item-notes-on-sync"
-    ) as boolean;
+    const shouldCreateAllItemNotes = this.settingsManager.getSetting("create-item-notes-on-sync");
     if (shouldCreateAllItemNotes) {
       await this.createAllPocketItemNotes();
     }
@@ -145,7 +143,7 @@ export default class PocketSync extends Plugin {
       result.add(tag.replace('#', ''))
     }
 
-    const mappings = (this.settingsManager.getSetting('upload-folder-tag-mappings') ?? []) as FolderTagMapping[]
+    const mappings = this.settingsManager.getSetting('upload-folder-tag-mappings') ?? []
 
     for (const mapping of mappings) {
       if (itemNote.path.startsWith(mapping.folder)) {
@@ -165,7 +163,7 @@ export default class PocketSync extends Plugin {
       return;
     }
 
-    const allowTags = new Set(this.settingsManager.getSetting('upload-allow-tags') as string[])
+    const allowTags = new Set(this.settingsManager.getSetting('upload-allow-tags'))
     if (allowTags.size === 0) {
       new Notice("The tags for upload are not set. Please specify them in the settings.");
       return;
