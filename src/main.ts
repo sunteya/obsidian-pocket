@@ -1,5 +1,5 @@
 import log from "loglevel";
-import { Notice, Plugin } from "obsidian";
+import { Notice, Plugin, TFile, getAllTags } from "obsidian";
 import ReactDOM from "react-dom";
 import { MetadataStore } from "./data/MetadataStore";
 import { closePocketIDB, openPocketIDB, PocketIDB } from "./data/PocketIDB";
@@ -18,6 +18,7 @@ import {
 import {
   buildPocketAPI,
   PocketAPI,
+  PocketItemAction,
   Username as PocketUsername,
 } from "./pocket_api/PocketAPI";
 import {
@@ -25,7 +26,7 @@ import {
   OBSIDIAN_AUTH_PROTOCOL_ACTION,
   storePocketAccessInfo,
 } from "./pocket_api/PocketAuth";
-import { PocketSettings, SettingsManager } from "./SettingsManager";
+import { FolderTagMapping, PocketSettings, SettingsManager } from "./SettingsManager";
 import {
   PocketItemListView,
   POCKET_ITEM_LIST_VIEW_TYPE,
@@ -133,6 +134,94 @@ export default class PocketSync extends Plugin {
     } finally {
       creationNotice.hide();
       this.pendingBulkCreate = false;
+    }
+  }
+
+  getItemNoteTags(itemNote: TFile) {
+    const result = new Set<string>()
+
+    const cache = this.app.metadataCache.getFileCache(itemNote)
+    for (const tag of (getAllTags(cache) ?? [])) {
+      result.add(tag.replace('#', ''))
+    }
+
+    const mappings = (this.settingsManager.getSetting('upload-folder-tag-mappings') ?? []) as FolderTagMapping[]
+
+    for (const mapping of mappings) {
+      if (itemNote.path.startsWith(mapping.folder)) {
+        for (const tag of mapping.tags) {
+          result.add(tag)
+        }
+      }
+    }
+
+    return result
+  }
+
+  async uploadItemNotesTags() {
+    const accessInfo = await loadPocketAccessInfo(this);
+    if (!accessInfo) {
+      new Notice("Not logged into Pocket, skipping sync");
+      return;
+    }
+
+    const allowTags = new Set(this.settingsManager.getSetting('upload-allow-tags') as string[])
+    if (allowTags.size === 0) {
+      new Notice("The tags for upload are not set. Please specify them in the settings.");
+      return;
+    }
+
+    const allPocketItems = (await this.itemStore.getAllItems())
+    const allItemNotes = (
+      await getAllItemNotes(
+        this.urlToItemNoteIndex,
+        this.resolveItemNote
+      )(allPocketItems)
+    ).filter(({ itemNote }) => itemNote)
+
+    const actions = [] as PocketItemAction[]
+    for (const { itemNote, item } of allItemNotes) {
+      const itemTags = new Set(Object.keys(item.tags))
+      const noteTags = this.getItemNoteTags(itemNote)
+
+      for (const tag of allowTags) {
+        if (noteTags.has(tag) && !itemTags.has(tag)) {
+          actions.push({ action: "tags_add", item_id: item.item_id, tags: tag })
+        } else if (!noteTags.has(tag) && itemTags.has(tag)) {
+          actions.push({ action: "tags_remove", item_id: item.item_id, tags: tag })
+        }
+      }
+    }
+
+    if (actions.length === 0) {
+      new Notice("No notes need to be uploaded.");
+      return;
+    }
+
+    const changes = new Set<number>()
+    const resp = await this.pocketAPI.modifyPocketItems(accessInfo.accessToken, actions)
+    for (const idx in resp.action_results) {
+      const action = actions[idx]
+      const item = await this.itemStore.getItem(action.item_id)
+      changes.add(item.item_id)
+
+      if (action.action == 'tags_add') {
+        item.tags[action.tags] = {
+          item_id: item.item_id.toString(),
+          tag: action.tags
+        }
+
+        await this.itemStore.mergeUpdates({ [item.item_id]: item })
+      } else if (action.action == 'tags_remove') {
+        delete item.tags[action.tags]
+        await this.itemStore.mergeUpdates({ [item.item_id]: item })
+      }
+    }
+
+    if (resp.status === 1) {
+      new Notice(`Uploaded ${changes.size} item notes tags to Pocket`);
+    } else {
+      new Notice(`Failed to upload item notes tags to Pocket`);
     }
   }
 
@@ -318,5 +407,13 @@ export default class PocketSync extends Plugin {
         await this.createAllPocketItemNotes();
       },
     });
+
+    this.addCommand({
+      id: "upload-item-notes-tags",
+      name: "Upload item note's tags to Pocket",
+      callback: async () => {
+        await this.uploadItemNotesTags()
+      }
+    })
   };
 }

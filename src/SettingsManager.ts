@@ -3,6 +3,11 @@ import { CallbackId, CallbackRegistry } from "./CallbackRegistry";
 import { MultiWordTagConversion } from "./Tags";
 import { getUniqueId } from "./Utils";
 
+export interface FolderTagMapping {
+  folder: string | null;
+  tags: string[];
+}
+
 export interface PocketSettings {
   "item-note-template"?: string;
   "item-note-template-with-templater"?: boolean;
@@ -12,6 +17,9 @@ export interface PocketSettings {
   "frontmatter-url-key"?: string;
   "create-item-notes-on-sync"?: boolean;
   "custom-pocket-api-url"?: string;
+
+  "upload-allow-tags"?: string[];
+  "upload-folder-tag-mappings"?: FolderTagMapping[];
 }
 
 export const DEFAULT_POCKET_SETTINGS: PocketSettings = {
@@ -20,6 +28,8 @@ export const DEFAULT_POCKET_SETTINGS: PocketSettings = {
   "create-item-notes-on-sync": true,
   "custom-pocket-api-url": "https://getpocket.com",
   "item-note-template-with-templater": false,
+
+  "upload-allow-tags": [],
 };
 
 export type OnSettingsChangeCallback = () => Promise<void>;

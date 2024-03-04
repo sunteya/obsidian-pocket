@@ -58,10 +58,29 @@ export type GetPocketItems = (
   pocketSyncTag?: string
 ) => Promise<TimestampedPocketGetItemsResponse>;
 
+
+
+export type PocketItemAction = {
+  action: 'tags_add' | 'tags_remove'
+  item_id: number
+  tags?: string
+}
+
+export type ModifyPocketItemsResponse = {
+  action_results: boolean[]
+  status: number
+}
+
+export type ModifyPocketItems = (
+  accessToken: AccessToken,
+  actions: PocketItemAction[]
+) => Promise<ModifyPocketItemsResponse>
+
 export interface PocketAPI {
   getRequestToken: GetRequestToken;
   getAccessToken: GetAccessToken;
   getPocketItems: GetPocketItems;
+  modifyPocketItems: ModifyPocketItems;
   getBaseUrl: () => string;
 }
 
@@ -167,11 +186,40 @@ export const getPocketItems = async (
   }
 };
 
+export const modifyPocketItems = async(
+  pocketApi: PocketAPI,
+  accessToken: AccessToken,
+  actions: PocketItemAction[]
+) => {
+  const MODIFY_ITEMS_URL = `${pocketApi.getBaseUrl()}/v3/send`;
+
+  const requestOptions = {
+    consumer_key: CONSUMER_KEY,
+    access_token: accessToken,
+    actions: JSON.stringify(actions)
+  };
+
+  try {
+    const responseBody = await doRequest(MODIFY_ITEMS_URL, requestOptions);
+    log.info(`Pocket items fetched.`);
+    const response = await responseBody;
+
+    return JSON.parse(response);
+  } catch (err) {
+    const errorMessage = `Encountered error ${err} while modify Pocket items`;
+    log.error(errorMessage);
+    new Notice(errorMessage);
+
+    throw err;
+  }
+}
+
 export const buildPocketAPI = (settingsManager: SettingsManager): PocketAPI => {
   const result = <PocketAPI>{}
   result.getBaseUrl = () => settingsManager.getSetting('custom-pocket-api-url')
   result.getRequestToken = (...args) => getRequestToken(result, ...args)
   result.getAccessToken = (...args) => getAccessToken(result, ...args)
   result.getPocketItems = (...args) => getPocketItems(result, ...args)
+  result.modifyPocketItems = (...args) => modifyPocketItems(result, ...args)
   return result;
 };

@@ -1,13 +1,14 @@
 import { stylesheet } from "astroturf";
 import log from "loglevel";
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
-import { DEFAULT_POCKET_SETTINGS, SettingsManager } from "src/SettingsManager";
+import { App, ButtonComponent, Notice, PluginSettingTab, Setting } from "obsidian";
+import { DEFAULT_POCKET_SETTINGS, FolderTagMapping, SettingsManager } from "src/SettingsManager";
 import PocketSync from "../main";
 import {
   clearPocketAccessInfo,
   pocketAccessInfoExists,
   setupAuth,
 } from "../pocket_api/PocketAuth";
+import { FolderSuggest } from "src/vendor/obsidian-periodic-notes/file-suggest"
 
 const styles = stylesheet`
   .error {
@@ -111,7 +112,7 @@ const addItemNoteTemplateSetting = (
       `Choose the file to use as a custom template when creating a new note from
       a Pocket item, rather than using the default template provided by
       obsidian-pocket.
-      
+
       IMPORTANT: Please consider carefully whether it is worth the effort to
       provide your own custom template, as the default one is complete and
       tested to work properly with YAML front matter.`
@@ -285,6 +286,93 @@ const addCustomPocketAPIURLSetting = (
     });
 }
 
+
+const HEADING_UPLOAD_DATA = "Upload data to pocket";
+
+const UPLOAD_ALLOW_TAGS_CTA = "Upload allow tags";
+const UPLOAD_ALLOW_TAGS_DESC = `Specify the allowed list of tags, multiple tags separated by commas.
+If this setting is left blank, data will not be uploaded.`;
+
+const addUploadAllowTagsSetting = (
+  settingsManager: SettingsManager,
+  containerEl: HTMLElement
+) => {
+  new Setting(containerEl)
+    .setName(UPLOAD_ALLOW_TAGS_CTA)
+    .setDesc(UPLOAD_ALLOW_TAGS_DESC)
+    .addText((text) => {
+      text.setPlaceholder("Specify a list of tags to allow");
+
+      const tags = settingsManager.getSetting("upload-allow-tags") as string[];
+      text.setValue(tags.join(", "));
+      text.onChange(async (newValue) => {
+        if (newValue.length == 0) {
+          newValue = null;
+        }
+
+        const newTags = newValue.split(",").map(it => it.trim()).filter(it => it.length > 0)
+        await settingsManager.updateSetting("upload-allow-tags", newTags);
+      });
+    });
+}
+
+const addUploadFolderTagMappingsSetting = (
+  settingsManager: SettingsManager,
+  containerEl: HTMLElement,
+  settingTab: PluginSettingTab,
+) => {
+  const mappings = ((settingsManager.getSetting('upload-folder-tag-mappings') ?? []) as FolderTagMapping[]).filter(it => it)
+
+  new Setting(containerEl)
+      .setName("Folder tags mappings")
+      .setDesc("Set tags for folder mappings, item notes in that folder will automatically append these tags for uploading to Pocket.")
+      .addButton((button: ButtonComponent) => {
+          button
+              .setTooltip("Add additional folder template")
+              .setButtonText("+")
+              .setCta()
+              .onClick(() => {
+                mappings.push({ folder: null, tags: [] })
+                settingsManager.updateSetting('upload-folder-tag-mappings', mappings)
+                settingTab.display()
+              });
+      });
+
+    for (const idx in mappings) {
+      const mapping = mappings[idx]
+      new Setting(containerEl)
+        .addSearch((cb) => {
+          new FolderSuggest(settingTab.app, cb.inputEl);
+          cb.setPlaceholder("Folder")
+            .setValue(mapping.folder)
+            .onChange((newFolder) => {
+              if (!newFolder.endsWith("/")) {
+                newFolder += "/";
+              }
+              mapping.folder = newFolder;
+              settingsManager.updateSetting('upload-folder-tag-mappings', mappings);
+            });
+        })
+        .addText((tx) => {
+          tx.setPlaceholder("Tags")
+          tx.setValue(mapping.tags.join(", "))
+          tx.onChange((newValue) => {
+            mapping.tags = newValue.split(",").map(it => it.trim()).filter(it => it.length > 0)
+            settingsManager.updateSetting('upload-folder-tag-mappings', mappings)
+          });
+        })
+        .addExtraButton((cb) => {
+          cb.setIcon("cross")
+            .setTooltip("Delete")
+            .onClick(() => {
+              const newMappings = mappings.filter((_, i) => i.toString() != idx)
+              settingsManager.updateSetting('upload-folder-tag-mappings', newMappings)
+              settingTab.display();
+            });
+        });
+    }
+}
+
 export class PocketSettingTab extends PluginSettingTab {
   plugin: PocketSync;
   settingsManager: SettingsManager;
@@ -310,5 +398,9 @@ export class PocketSettingTab extends PluginSettingTab {
     addItemNoteTemplateWithTemplaterSetting(this.settingsManager, containerEl);
     addFrontMatterURLKeySetting(this.settingsManager, containerEl);
     addCustomPocketAPIURLSetting(this.settingsManager, containerEl);
+
+    containerEl.createEl('h2', { text: HEADING_UPLOAD_DATA });
+    addUploadAllowTagsSetting(this.settingsManager, containerEl);
+    addUploadFolderTagMappingsSetting(this.settingsManager, containerEl, this);
   }
 }
